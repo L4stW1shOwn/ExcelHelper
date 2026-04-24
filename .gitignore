@@ -1,0 +1,44 @@
+## Build outputs
+bin/
+obj/
+out/
+publish/
+
+## IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+*.sln.docstates
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Test & coverage
+TestResults/
+*.coverage
+*.coveragexml
+
+## NuGet
+*.nupkg
+packages/
+project.lock.json
+
+## Logs & crash dumps
+*.log
+mono_crash.*.json
+
+## Misc
+.worktrees/
+
+## Explicitly excluded project files
+ROADMAP.md
+package-lock.json
+package.json
+AGENTS.md
+node_modules/
+docs/superpowers/
