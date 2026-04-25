@@ -2,48 +2,59 @@ using System;
 using System.Globalization;
 using ExcelHelper.Internal;
 
-namespace ExcelHelper.TypeConversion
+namespace ExcelHelper.TypeConversion;
+
+/// <summary>
+///     Converts between Excel cell values and <see cref="DateTime" />.
+/// </summary>
+public sealed class DateTimeConverter : IExcelTypeConverter<DateTime>
 {
     /// <summary>
-    /// Converts between Excel cell values and <see cref="DateTime"/>.
+    ///     Converts a cell value to a <see cref="DateTime" />.
     /// </summary>
-    public sealed class DateTimeConverter : IExcelTypeConverter<DateTime>
+    public DateTime ConvertFromExcel(object? value, CultureInfo cultureInfo)
     {
-        /// <summary>
-        /// Converts a cell value to a <see cref="DateTime"/>.
-        /// </summary>
-        public DateTime ConvertFromExcel(object? value, CultureInfo cultureInfo)
+        if (value == null)
         {
-            if (value == null)
-                return default;
+            return default;
+        }
 
-            if (value is DateTime dt)
-                return dt;
+        if (value is DateTime dt)
+        {
+            return dt;
+        }
 
-            if (value is double d)
-                return OADateConverter.FromOADate(d);
+        if (value is double d)
+        {
+            return OADateConverter.FromOADate(d);
+        }
 
-            if (value is string s)
+        if (value is string s)
+        {
+            if (DateTime.TryParse(s, cultureInfo, DateTimeStyles.None, out var result))
             {
-                if (DateTime.TryParse(s, cultureInfo, DateTimeStyles.None, out var result))
-                    return result;
-
-                if (double.TryParse(s, NumberStyles.Float, cultureInfo, out var oaDate))
-                    return OADateConverter.FromOADate(oaDate);
+                return result;
             }
 
-            return Convert.ToDateTime(value, cultureInfo);
+            if (double.TryParse(s, NumberStyles.Float, cultureInfo, out var oaDate))
+            {
+                return OADateConverter.FromOADate(oaDate);
+            }
         }
 
-        /// <summary>
-        /// Converts a <see cref="DateTime"/> to an Excel-compatible value.
-        /// </summary>
-        public object? ConvertToExcel(object? value, CultureInfo cultureInfo)
+        return Convert.ToDateTime(value, cultureInfo);
+    }
+
+    /// <summary>
+    ///     Converts a <see cref="DateTime" /> to an Excel-compatible value.
+    /// </summary>
+    public object? ConvertToExcel(object? value, CultureInfo cultureInfo)
+    {
+        if (value is DateTime dt)
         {
-            if (value is DateTime dt)
-                return OADateConverter.ToOADate(dt);
-
-            return value;
+            return OADateConverter.ToOADate(dt);
         }
+
+        return value;
     }
 }
