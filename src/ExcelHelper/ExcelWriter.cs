@@ -9,6 +9,7 @@ using ExcelHelper.Core;
 using ExcelHelper.Exceptions;
 using ExcelHelper.Mapping;
 using ExcelHelper.TypeConversion;
+using ExcelHelper.Validation;
 using OfficeOpenXml;
 
 namespace ExcelHelper;
@@ -201,9 +202,10 @@ public sealed class ExcelWriter : IDisposable
             var skipField = false;
             foreach (var validator in memberMap.Validators)
             {
-                if (validator is Validation.IExcelFieldValidator fieldValidator)
+                if (validator is IExcelFieldValidator fieldValidator)
                 {
-                    var result = fieldValidator.Validate(rawValue, memberMap.Name, Context.Row, Context.Column);
+                    var validateArgs = new ValidateArgs(rawValue, memberMap.Name, Context.Row, Context.Column, Context);
+                    var result = fieldValidator.Validate(validateArgs);
                     if (!result.IsValid)
                     {
                         var validationArgs = new ValidationFailedEventArgs(

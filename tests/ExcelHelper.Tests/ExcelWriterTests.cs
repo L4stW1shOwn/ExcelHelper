@@ -174,7 +174,7 @@ public class ExcelWriterTests
 
 public class AlwaysFailValidator : IExcelFieldValidator
 {
-    public ValidationResult Validate(object? value, string? fieldName, int row, int column)
+    public ValidationResult Validate(ValidateArgs args)
     {
         return ValidationResult.Failed("Always fails for testing.");
     }

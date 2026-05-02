@@ -348,7 +348,8 @@ public sealed class ExcelReader : IDisposable
             {
                 if (validator is IExcelFieldValidator fieldValidator)
                 {
-                    var result = fieldValidator.Validate(convertedValue, memberMap.Name, Context.Row, Context.Column);
+                    var validateArgs = new ValidateArgs(convertedValue, memberMap.Name, Context.Row, Context.Column, Context);
+                    var result = fieldValidator.Validate(validateArgs);
                     if (!result.IsValid)
                     {
                         var validationArgs = new ValidationFailedEventArgs(
