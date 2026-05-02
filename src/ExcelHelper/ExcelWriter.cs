@@ -112,7 +112,8 @@ public sealed class ExcelWriter : IDisposable
             }
             catch (ExcelHelperException ex)
             {
-                if (_configuration.WritingExceptionOccurred(ex))
+                var eventArgs = new WritingExceptionEventArgs(Context, ex);
+                if (_configuration.WritingExceptionOccurred(eventArgs))
                 {
                     continue;
                 }
@@ -288,7 +289,8 @@ public sealed class ExcelWriter : IDisposable
             }
             catch (ExcelHelperException ex)
             {
-                if (_configuration.WritingExceptionOccurred(ex))
+                var eventArgs = new WritingExceptionEventArgs(Context, ex);
+                if (_configuration.WritingExceptionOccurred(eventArgs))
                 {
                     continue;
                 }

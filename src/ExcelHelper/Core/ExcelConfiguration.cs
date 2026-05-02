@@ -90,18 +90,18 @@ public class ExcelConfiguration
     ///     Gets or sets a callback that is invoked when an exception occurs during reading.
     ///     Return true to ignore the exception and continue; false to throw.
     /// </summary>
-    public Func<ExcelHelperException, bool> ReadingExceptionOccurred { get; set; } = static _ => false;
+    public Func<ReadingExceptionEventArgs, bool> ReadingExceptionOccurred { get; set; } = static _ => false;
 
     /// <summary>
     ///     Gets or sets a callback that is invoked when an exception occurs during writing.
     ///     Return true to ignore the exception and continue; false to throw.
     /// </summary>
-    public Func<ExcelHelperException, bool> WritingExceptionOccurred { get; set; } = static _ => false;
+    public Func<WritingExceptionEventArgs, bool> WritingExceptionOccurred { get; set; } = static _ => false;
 
     /// <summary>
     ///     Gets or sets a callback that is invoked when a field is missing during reading.
     /// </summary>
-    public Action<string[], int, ReadingContext>? MissingFieldFound { get; set; }
+    public Action<MissingFieldEventArgs> MissingFieldFound { get; set; } = static _ => { };
 
     /// <summary>
     ///     Gets or sets a callback that is invoked when bad data is found in a cell.

@@ -242,7 +242,8 @@ public sealed class ExcelReader : IDisposable
             }
             catch (ExcelHelperException ex)
             {
-                if (_configuration.ReadingExceptionOccurred(ex))
+                var eventArgs = new ReadingExceptionEventArgs(Context, ex);
+                if (_configuration.ReadingExceptionOccurred(eventArgs))
                 {
                     continue;
                 }
@@ -305,10 +306,7 @@ public sealed class ExcelReader : IDisposable
                 else if (!memberMap.IsOptional)
                 {
                     // Missing required field
-                    if (_configuration.MissingFieldFound != null && _headerRecord != null)
-                    {
-                        _configuration.MissingFieldFound(_headerRecord, Context.Row, Context);
-                    }
+                    _configuration.MissingFieldFound(new MissingFieldEventArgs(Context, memberMap.Name, Context.Row));
                 }
             }
 

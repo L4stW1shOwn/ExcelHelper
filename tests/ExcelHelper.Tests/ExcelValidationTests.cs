@@ -250,7 +250,7 @@ public class ExcelValidationTests
             HasHeaderRecord = true,
             HeaderRow = 1,
             StartRow = 2,
-            MissingFieldFound = (headers, row, context) => { callbackInvoked = true; }
+            MissingFieldFound = args => { callbackInvoked = true; }
         };
 
         using var reader = new ExcelReader(stream, config);
