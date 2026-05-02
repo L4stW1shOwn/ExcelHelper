@@ -22,7 +22,7 @@ public sealed class ReadingContext : ExcelContext
     /// <summary>
     ///     Gets the current raw record values.
     /// </summary>
-    public string[]? Record { get; internal set; }
+    public string[]? RawRecord { get; internal set; }
 
     /// <summary>
     ///     Gets the current 0-based record index within the data rows.
@@ -33,4 +33,24 @@ public sealed class ReadingContext : ExcelContext
     ///     Gets the total number of rows in the worksheet.
     /// </summary>
     public int RowCount { get; internal set; }
+
+    /// <summary>
+    ///     Gets the raw value of the current field being processed.
+    /// </summary>
+    public object? CurrentFieldValue { get; internal set; }
+
+    /// <summary>
+    ///     Gets the name of the current field being processed.
+    /// </summary>
+    public string? CurrentFieldName { get; internal set; }
+
+    /// <summary>
+    ///     Gets the 0-based index of the current field being processed.
+    /// </summary>
+    public int CurrentFieldIndex { get; internal set; }
+
+    /// <summary>
+    ///     Gets the current record instance being constructed.
+    /// </summary>
+    public object? CurrentRecord { get; internal set; }
 }

@@ -18,4 +18,24 @@ public sealed class WritingContext : ExcelContext
     ///     Gets a value indicating whether the header has already been written.
     /// </summary>
     public bool HasHeaderBeenWritten { get; internal set; }
+
+    /// <summary>
+    ///     Gets the raw value of the current field being written.
+    /// </summary>
+    public object? CurrentFieldValue { get; internal set; }
+
+    /// <summary>
+    ///     Gets the name of the current field being written.
+    /// </summary>
+    public string? CurrentFieldName { get; internal set; }
+
+    /// <summary>
+    ///     Gets the 0-based index of the current field being written.
+    /// </summary>
+    public int CurrentFieldIndex { get; internal set; }
+
+    /// <summary>
+    ///     Gets the current record instance being written.
+    /// </summary>
+    public object? CurrentRecord { get; internal set; }
 }
