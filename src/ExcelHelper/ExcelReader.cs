@@ -321,7 +321,7 @@ public sealed class ExcelReader : IDisposable
             catch (Exception ex)
             {
                 var badDataArgs =
-                    new BadDataFoundArgs(memberMap.Name, rawValue?.ToString(), Context.Row, Context.Column);
+                    new BadDataFoundEventArgs(Context, memberMap.Name, rawValue, Context.Row, Context.Column);
                 if (_configuration.BadDataFound(badDataArgs))
                 {
                     continue;

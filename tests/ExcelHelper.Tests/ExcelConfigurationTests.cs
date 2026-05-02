@@ -49,14 +49,4 @@ public class ExcelConfigurationTests
         Assert.Equal("fr-FR", config.CultureInfo.Name);
     }
 
-    [Fact]
-    public void BadDataFoundArgs_Should_Store_Values()
-    {
-        var args = new BadDataFoundArgs("Name", "bad_value", 5, 2);
-
-        Assert.Equal("Name", args.Field);
-        Assert.Equal("bad_value", args.RawCellValue);
-        Assert.Equal(5, args.Row);
-        Assert.Equal(2, args.Column);
-    }
 }

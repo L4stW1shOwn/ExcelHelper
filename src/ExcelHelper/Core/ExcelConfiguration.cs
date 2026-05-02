@@ -107,5 +107,12 @@ public class ExcelConfiguration
     ///     Gets or sets a callback that is invoked when bad data is found in a cell.
     ///     Return true to ignore and continue; false to throw.
     /// </summary>
-    public Func<BadDataFoundArgs, bool> BadDataFound { get; set; } = static _ => false;
+    public Func<BadDataFoundEventArgs, bool> BadDataFound { get; set; } = static _ => false;
+
+    /// <summary>
+    ///     Gets or sets a callback invoked when any field or record validation fails
+    ///     (i.e. when an <see cref="Validation.IExcelFieldValidator" /> or <see cref="Validation.IExcelRecordValidator{T}" /> returns invalid).
+    ///     Return true to ignore the validation error and continue; false to throw.
+    /// </summary>
+    public Func<ValidationFailedEventArgs, bool> ValidationFailed { get; set; } = static _ => false;
 }
