@@ -1,4 +1,5 @@
 using System;
+using ExcelHelper.Core;
 
 namespace ExcelHelper.Exceptions;
 
@@ -52,6 +53,63 @@ public class ExcelTypeConversionException : ExcelHelperException
         int column,
         Exception innerException)
         : base(message, innerException)
+    {
+        FieldValue = fieldValue;
+        TargetType = targetType;
+        FieldName = fieldName;
+        Row = row;
+        Column = column;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelTypeConversionException" /> class with context.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="fieldValue">The raw cell value.</param>
+    /// <param name="targetType">The target type.</param>
+    /// <param name="fieldName">The field name.</param>
+    /// <param name="row">The 1-based row index.</param>
+    /// <param name="column">The 1-based column index.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    public ExcelTypeConversionException(
+        string message,
+        object? fieldValue,
+        Type targetType,
+        string? fieldName,
+        int row,
+        int column,
+        ExcelContext? context)
+        : base(message, context)
+    {
+        FieldValue = fieldValue;
+        TargetType = targetType;
+        FieldName = fieldName;
+        Row = row;
+        Column = column;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelTypeConversionException" /> class with context and inner
+    ///     exception.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="fieldValue">The raw cell value.</param>
+    /// <param name="targetType">The target type.</param>
+    /// <param name="fieldName">The field name.</param>
+    /// <param name="row">The 1-based row index.</param>
+    /// <param name="column">The 1-based column index.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public ExcelTypeConversionException(
+        string message,
+        object? fieldValue,
+        Type targetType,
+        string? fieldName,
+        int row,
+        int column,
+        ExcelContext? context,
+        Exception innerException)
+        : base(message, context, innerException)
     {
         FieldValue = fieldValue;
         TargetType = targetType;

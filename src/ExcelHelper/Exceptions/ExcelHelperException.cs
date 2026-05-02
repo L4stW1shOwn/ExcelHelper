@@ -1,4 +1,5 @@
 using System;
+using ExcelHelper.Core;
 
 namespace ExcelHelper.Exceptions;
 
@@ -36,4 +37,35 @@ public class ExcelHelperException : Exception
         : base(message, innerException)
     {
     }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelHelperException" /> class with a specified error message and
+    ///     context.
+    /// </summary>
+    /// <param name="message">The message that describes the error.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    public ExcelHelperException(string message, ExcelContext? context)
+        : base(message)
+    {
+        Context = context;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelHelperException" /> class with a specified error message, context,
+    ///     and inner exception.
+    /// </summary>
+    /// <param name="message">The error message that explains the reason for the exception.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public ExcelHelperException(string message, ExcelContext? context, Exception innerException)
+        : base(message, innerException)
+    {
+        Context = context;
+    }
+
+    /// <summary>
+    ///     Gets the context associated with the exception, if available.
+    ///     Cast to <see cref="ReadingContext" /> or <see cref="WritingContext" /> as needed.
+    /// </summary>
+    public ExcelContext? Context { get; }
 }

@@ -1,4 +1,5 @@
 using System;
+using ExcelHelper.Core;
 
 namespace ExcelHelper.Exceptions;
 
@@ -30,6 +31,35 @@ public class ExcelMappingException : ExcelHelperException
     /// <param name="innerException">The inner exception.</param>
     public ExcelMappingException(string message, Type? mappedType, string? memberName, Exception innerException)
         : base(message, innerException)
+    {
+        MappedType = mappedType;
+        MemberName = memberName;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelMappingException" /> class with context.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="mappedType">The type being mapped.</param>
+    /// <param name="memberName">The member name being mapped.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    public ExcelMappingException(string message, Type? mappedType, string? memberName, ExcelContext? context)
+        : base(message, context)
+    {
+        MappedType = mappedType;
+        MemberName = memberName;
+    }
+
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="ExcelMappingException" /> class with context and inner exception.
+    /// </summary>
+    /// <param name="message">The error message.</param>
+    /// <param name="mappedType">The type being mapped.</param>
+    /// <param name="memberName">The member name being mapped.</param>
+    /// <param name="context">The context associated with the exception.</param>
+    /// <param name="innerException">The inner exception.</param>
+    public ExcelMappingException(string message, Type? mappedType, string? memberName, ExcelContext? context, Exception innerException)
+        : base(message, context, innerException)
     {
         MappedType = mappedType;
         MemberName = memberName;
