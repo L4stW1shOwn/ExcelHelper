@@ -16,6 +16,33 @@ public class ExcelConfiguration
     public ExcelClassMapCollection Maps { get; } = new();
 
     /// <summary>
+    ///     Registers a class map for the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type to map.</typeparam>
+    /// <param name="map">The class map.</param>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="map" /> is null.</exception>
+    public void RegisterClassMap<T>(ExcelClassMap<T> map)
+    {
+        if (map == null)
+        {
+            throw new ArgumentNullException(nameof(map));
+        }
+
+        Maps.Add(map);
+    }
+
+    /// <summary>
+    ///     Registers a class map by creating an instance of the specified map type.
+    /// </summary>
+    /// <typeparam name="TClassMap">The type of the class map to create.</typeparam>
+    public void RegisterClassMap<TClassMap>()
+        where TClassMap : ExcelClassMap, new()
+    {
+        var map = new TClassMap();
+        Maps.Add(map);
+    }
+
+    /// <summary>
     ///     Gets or sets the object resolver used to create instances during mapping.
     /// </summary>
     public IObjectResolver ObjectResolver { get; set; } = new DefaultObjectResolver();

@@ -1,3 +1,5 @@
+using System;
+
 namespace ExcelHelper.Core;
 
 /// <summary>
@@ -17,7 +19,7 @@ public sealed class ValidationFailedEventArgs : ExcelEventArgs
     {
         FieldName = fieldName;
         FieldValue = fieldValue;
-        ErrorMessage = errorMessage;
+        ErrorMessage = errorMessage ?? throw new ArgumentNullException(nameof(errorMessage));
     }
 
     /// <summary>

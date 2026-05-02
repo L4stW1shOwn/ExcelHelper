@@ -67,5 +67,9 @@ public class ExcelHelperException : Exception
     ///     Gets the context associated with the exception, if available.
     ///     Cast to <see cref="ReadingContext" /> or <see cref="WritingContext" /> as needed.
     /// </summary>
+    /// <remarks>
+    ///     This is a live reference to the mutable context at the time the exception was thrown.
+    ///     Do not cache it for later inspection, as its state may change during subsequent operations.
+    /// </remarks>
     public ExcelContext? Context { get; }
 }

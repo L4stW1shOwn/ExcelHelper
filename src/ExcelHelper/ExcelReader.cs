@@ -343,6 +343,7 @@ public sealed class ExcelReader : IDisposable
             }
 
             // Field validation
+            var skipField = false;
             foreach (var validator in memberMap.Validators)
             {
                 if (validator is IExcelFieldValidator fieldValidator)
@@ -354,7 +355,8 @@ public sealed class ExcelReader : IDisposable
                             Context, memberMap.Name, convertedValue, result.ErrorMessage ?? "Validation failed.");
                         if (_configuration.ValidationFailed(validationArgs))
                         {
-                            continue;
+                            skipField = true;
+                            break;
                         }
 
                         throw new ExcelValidationException(
@@ -365,6 +367,11 @@ public sealed class ExcelReader : IDisposable
                             Context);
                     }
                 }
+            }
+
+            if (skipField)
+            {
+                continue;
             }
 
             // Property assignment

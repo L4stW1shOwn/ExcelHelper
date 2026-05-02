@@ -20,5 +20,9 @@ public abstract class ExcelEventArgs : EventArgs
     /// <summary>
     ///     Gets the context associated with the event.
     /// </summary>
+    /// <remarks>
+    ///     This is a live reference to the mutable context. Do not cache it for later inspection,
+    ///     as its state may change during subsequent read or write operations.
+    /// </remarks>
     public ExcelContext Context { get; }
 }

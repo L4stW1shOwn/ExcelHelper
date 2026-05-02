@@ -198,6 +198,7 @@ public sealed class ExcelWriter : IDisposable
             }
 
             // Field validation (if any validators configured on write path)
+            var skipField = false;
             foreach (var validator in memberMap.Validators)
             {
                 if (validator is Validation.IExcelFieldValidator fieldValidator)
@@ -209,7 +210,8 @@ public sealed class ExcelWriter : IDisposable
                             Context, memberMap.Name, rawValue, result.ErrorMessage ?? "Validation failed.");
                         if (_configuration.ValidationFailed(validationArgs))
                         {
-                            continue;
+                            skipField = true;
+                            break;
                         }
 
                         throw new ExcelValidationException(
@@ -220,6 +222,11 @@ public sealed class ExcelWriter : IDisposable
                             Context);
                     }
                 }
+            }
+
+            if (skipField)
+            {
+                continue;
             }
 
             try

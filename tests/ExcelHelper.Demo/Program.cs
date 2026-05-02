@@ -16,10 +16,12 @@ internal class Program
         ExcelPackage.LicenseContext = LicenseContext.NonCommercial; // ou LicenseContext.Commercial
         var file = @"/mnt/datas/dev/ExcelHelper/tests/ExcelHelper.Demo/Test_1.xlsx";
 
+        var config = new ExcelConfiguration();
+        config.RegisterClassMap<PersonMap>();
+        config.SheetName = "People";
+
         using var stream = new FileStream(file, FileMode.OpenOrCreate);
-        using var writer = new ExcelWriter(stream, new ExcelConfiguration());
-        writer.Context.RegisterClassMap<PersonMap>();
-        writer.Context.Configuration.SheetName = "People";
+        using var writer = new ExcelWriter(stream, config);
 
         writer.WriteRecords(new List<Person>
         {
