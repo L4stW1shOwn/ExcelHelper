@@ -47,5 +47,9 @@ public sealed class ValidateArgs
     /// <summary>
     ///     Gets the current Excel context.
     /// </summary>
+    /// <remarks>
+    ///     This exposes the full internal operation context (worksheet, configuration, row/column state).
+    ///     Use with care when consuming in third-party validators to avoid unintentional information disclosure.
+    /// </remarks>
     public ExcelContext? Context { get; }
 }

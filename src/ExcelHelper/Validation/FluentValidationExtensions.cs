@@ -69,7 +69,7 @@ public sealed class GreaterThanValidator : IExcelFieldValidator
         {
             doubleValue = Convert.ToDouble(args.Value, CultureInfo.InvariantCulture);
         }
-        catch
+        catch (Exception ex) when (ex is FormatException || ex is InvalidCastException)
         {
             return ValidationResult.Failed($"Field '{args.FieldName}' at row {args.Row}, column {args.Column} must be a number.");
         }
@@ -118,7 +118,7 @@ public sealed class RangeValidator : IExcelFieldValidator
         {
             doubleValue = Convert.ToDouble(args.Value, CultureInfo.InvariantCulture);
         }
-        catch
+        catch (Exception ex) when (ex is FormatException || ex is InvalidCastException)
         {
             return ValidationResult.Failed($"Field '{args.FieldName}' at row {args.Row}, column {args.Column} must be a number.");
         }
