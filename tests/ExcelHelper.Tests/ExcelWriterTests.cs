@@ -3,7 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ExcelHelper.Core;
+using ExcelHelper.Exceptions;
+using ExcelHelper.Mapping;
 using ExcelHelper.Tests.Models;
+using ExcelHelper.Validation;
 using OfficeOpenXml;
 using Xunit;
 
@@ -103,4 +106,76 @@ public class ExcelWriterTests
         Assert.Equal("Banana", results[1].Name);
     }
 #endif
+
+    [Fact]
+    public void WriteRecords_Sets_Context_State_Per_Field()
+    {
+        var config = new ExcelConfiguration();
+        using var stream = new MemoryStream();
+        using var writer = new ExcelWriter(stream, config);
+
+        var records = new[] { new SimplePerson { Name = "Alice", Age = 30 } };
+        writer.WriteRecords(records);
+
+        Assert.NotNull(writer.Context);
+        Assert.IsType<WritingContext>(writer.Context);
+        // After writing one record, the context should reflect the last processed field state
+        Assert.Equal("Age", writer.Context.CurrentFieldName);
+        Assert.Equal(30, writer.Context.CurrentFieldValue);
+    }
+
+    [Fact]
+    public void WriteRecords_WritingExceptionOccurred_Receives_EventArgs_With_Context()
+    {
+        var config = new ExcelConfiguration();
+        WritingExceptionEventArgs? captured = null;
+        config.WritingExceptionOccurred = args =>
+        {
+            captured = args;
+            return true; // ignore
+        };
+
+        // Register a class map with a validator that always fails to trigger the exception path
+        var map = new ExcelClassMap<Person>();
+        map.AutoMap();
+        map.MemberMaps.First(m => m.Name == "Age").Validators.Add(new AlwaysFailValidator());
+        config.Maps.Add(map);
+
+        using var stream = new MemoryStream();
+        using var writer = new ExcelWriter(stream, config);
+        var records = new[] { new Person { Name = "Alice", Age = 30 } };
+        writer.WriteRecords(records);
+
+        Assert.NotNull(captured);
+        Assert.IsType<ExcelValidationException>(captured.Exception);
+        Assert.NotNull(captured.WritingContext);
+    }
+
+    [Fact]
+    public void WriteRecord_Single_Exception_Contains_WritingContext()
+    {
+        var config = new ExcelConfiguration();
+        // Register a class map with a validator that always fails
+        var map = new ExcelClassMap<Person>();
+        map.AutoMap();
+        map.MemberMaps.First(m => m.Name == "Age").Validators.Add(new AlwaysFailValidator());
+        config.Maps.Add(map);
+
+        using var stream = new MemoryStream();
+        using var writer = new ExcelWriter(stream, config);
+
+        var ex = Assert.Throws<ExcelValidationException>(() =>
+            writer.WriteRecord(new Person { Name = "Alice", Age = 30 }));
+
+        Assert.NotNull(ex.Context);
+        Assert.IsType<WritingContext>(ex.Context);
+    }
+}
+
+public class AlwaysFailValidator : IExcelFieldValidator
+{
+    public ValidationResult Validate(object? value, string? fieldName, int row, int column)
+    {
+        return ValidationResult.Failed("Always fails for testing.");
+    }
 }

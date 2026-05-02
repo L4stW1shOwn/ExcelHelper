@@ -73,7 +73,7 @@ public sealed class ExcelWriter : IDisposable
         var headerRow = _configuration.HeaderRow;
         foreach (var memberMap in members)
         {
-            _worksheet.Cells[headerRow, memberMap.Index].Value = memberMap.Name;
+            _worksheet.Cells[headerRow, memberMap.Index + 1].Value = memberMap.Name;
         }
 
         Context.HasHeaderBeenWritten = true;
@@ -141,15 +141,35 @@ public sealed class ExcelWriter : IDisposable
         var members = map.MemberMaps.ToList();
 
         WriteHeader<T>();
-        WriteRecord(record, members);
+
+        try
+        {
+            WriteRecord(record, members);
+        }
+        catch (ExcelHelperException ex)
+        {
+            var eventArgs = new WritingExceptionEventArgs(Context, ex);
+            if (_configuration.WritingExceptionOccurred(eventArgs))
+            {
+                Context.Row++;
+                return;
+            }
+
+            throw;
+        }
+
         Context.Row++;
     }
 
     private void WriteRecord<T>(T record, List<MemberMapData> members)
     {
+        Context.CurrentRecord = record;
+
         foreach (var memberMap in members)
         {
-            Context.Column = memberMap.Index;
+            Context.Column = memberMap.Index + 1;
+            Context.CurrentFieldName = memberMap.Name;
+            Context.CurrentFieldIndex = memberMap.Index;
 
             if (memberMap.Ignore)
             {
@@ -157,6 +177,7 @@ public sealed class ExcelWriter : IDisposable
             }
 
             var rawValue = GetMemberValue(record, memberMap);
+            Context.CurrentFieldValue = rawValue;
             object? convertedValue;
 
             try
@@ -172,7 +193,33 @@ public sealed class ExcelWriter : IDisposable
                     memberMap.Name,
                     Context.Row,
                     Context.Column,
+                    Context,
                     ex);
+            }
+
+            // Field validation (if any validators configured on write path)
+            foreach (var validator in memberMap.Validators)
+            {
+                if (validator is Validation.IExcelFieldValidator fieldValidator)
+                {
+                    var result = fieldValidator.Validate(rawValue, memberMap.Name, Context.Row, Context.Column);
+                    if (!result.IsValid)
+                    {
+                        var validationArgs = new ValidationFailedEventArgs(
+                            Context, memberMap.Name, rawValue, result.ErrorMessage ?? "Validation failed.");
+                        if (_configuration.ValidationFailed(validationArgs))
+                        {
+                            continue;
+                        }
+
+                        throw new ExcelValidationException(
+                            result.ErrorMessage ?? $"Validation failed for field '{memberMap.Name}'.",
+                            memberMap.Name,
+                            Context.Row,
+                            Context.Column,
+                            Context);
+                    }
+                }
             }
 
             try
@@ -185,6 +232,7 @@ public sealed class ExcelWriter : IDisposable
                     $"Failed to write value '{convertedValue}' to cell [{Context.Row},{Context.Column}].",
                     typeof(T),
                     memberMap.Member.Name,
+                    Context,
                     ex);
             }
         }
