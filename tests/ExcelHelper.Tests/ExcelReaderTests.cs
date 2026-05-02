@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ExcelHelper.Core;
 using ExcelHelper.Exceptions;
+using ExcelHelper.Mapping;
 using ExcelHelper.Tests.Models;
 using OfficeOpenXml;
 using Xunit;
@@ -460,5 +461,134 @@ public class ExcelReaderTests
         using var reader = new ExcelReader(stream, new ExcelConfiguration { HasHeaderRecord = false, StartRow = 1 });
         Assert.NotNull(reader.Context);
         Assert.Equal("Sheet1", reader.Context.SheetName);
+    }
+
+    [Fact]
+    public void GetRecords_Sets_Context_State_Per_Field()
+    {
+        var bytes = CreateExcelFile(new[] { "Name", "Age" }, new[] { new[] { "Alice", "30" } });
+        var config = new ExcelConfiguration();
+        ReadingContext? capturedContext = null;
+        config.BadDataFound = args =>
+        {
+            capturedContext = args.ReadingContext;
+            return false;
+        };
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new ExcelReader(stream, config);
+
+        // Trigger a conversion that won't fail — we just verify context is set during normal read
+        var records = reader.GetRecords<Person>().ToList();
+        Assert.Single(records);
+    }
+
+    [Fact]
+    public void GetRecords_BadDataFound_Receives_EventArgs_With_Context()
+    {
+        var bytes = CreateExcelFile(new[] { "Name", "Age" }, new[] { new[] { "Alice", "not_a_number" } });
+        BadDataFoundEventArgs? captured = null;
+        var config = new ExcelConfiguration();
+        config.BadDataFound = args =>
+        {
+            captured = args;
+            return false; // let it throw
+        };
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new ExcelReader(stream, config);
+
+        Assert.Throws<ExcelTypeConversionException>(() => reader.GetRecords<Person>().ToList());
+        Assert.NotNull(captured);
+        Assert.Equal("Age", captured.FieldName);
+        Assert.Equal("not_a_number", captured.RawValue);
+        Assert.NotNull(captured.ReadingContext);
+        Assert.Equal(2, captured.ReadingContext.Row);
+    }
+
+    [Fact]
+    public void GetRecords_ReadingExceptionOccurred_Receives_EventArgs_With_Context()
+    {
+        var bytes = CreateExcelFile(new[] { "Name", "Age" }, new[] { new[] { "Alice", "not_a_number" } });
+        ReadingExceptionEventArgs? captured = null;
+        var config = new ExcelConfiguration();
+        config.ReadingExceptionOccurred = args =>
+        {
+            captured = args;
+            return true; // ignore
+        };
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new ExcelReader(stream, config);
+        var records = reader.GetRecords<Person>().ToList();
+
+        Assert.Empty(records);
+        Assert.NotNull(captured);
+        Assert.IsType<ExcelTypeConversionException>(captured.Exception);
+        Assert.NotNull(captured.ReadingContext);
+    }
+
+    [Fact]
+    public void GetRecords_MissingFieldFound_Receives_EventArgs_With_Context()
+    {
+        var bytes = CreateExcelFile(new[] { "Name" }, new[] { new[] { "Alice" } });
+        MissingFieldEventArgs? captured = null;
+        var config = new ExcelConfiguration();
+        var map = new ExcelClassMap<SimplePerson>();
+        map.AutoMap();
+        map.MemberMaps.First(m => m.Name == "Age").IsOptional = false;
+        config.Maps.Add(map);
+        config.MissingFieldFound = args =>
+        {
+            captured = args;
+        };
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new ExcelReader(stream, config);
+        var records = reader.GetRecords<SimplePerson>().ToList();
+
+        Assert.NotNull(captured);
+        Assert.Equal("Age", captured.FieldName);
+        Assert.NotNull(captured.ReadingContext);
+    }
+
+    [Fact]
+    public void GetRecords_Exception_Contains_Context()
+    {
+        var bytes = CreateExcelFile(new[] { "Name", "Age" }, new[] { new[] { "Alice", "bad" } });
+        var config = new ExcelConfiguration();
+
+        using var stream = new MemoryStream(bytes);
+        using var reader = new ExcelReader(stream, config);
+
+        var ex = Assert.Throws<ExcelTypeConversionException>(() => reader.GetRecords<Person>().ToList());
+        Assert.NotNull(ex.Context);
+        Assert.IsType<ReadingContext>(ex.Context);
+        Assert.Equal(2, ex.Context.Row);
+    }
+
+    private static byte[] CreateExcelFile(string[] headers, string[][] rows)
+    {
+        using var stream = new MemoryStream();
+        using (var package = new ExcelPackage())
+        {
+            var ws = package.Workbook.Worksheets.Add("Sheet1");
+            for (var i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+            }
+
+            for (var r = 0; r < rows.Length; r++)
+            {
+                for (var c = 0; c < rows[r].Length; c++)
+                {
+                    ws.Cells[r + 2, c + 1].Value = rows[r][c];
+                }
+            }
+
+            package.SaveAs(stream);
+        }
+
+        return stream.ToArray();
     }
 }

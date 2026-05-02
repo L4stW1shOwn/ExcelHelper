@@ -278,10 +278,13 @@ public sealed class ExcelReader : IDisposable
     {
         Context.Row = row;
         var instance = (T)resolver.Resolve(typeof(T));
+        Context.CurrentRecord = instance;
 
         foreach (var memberMap in members)
         {
             Context.Column = memberMap.Index + 1; // EPPlus is 1-based
+            Context.CurrentFieldName = memberMap.Name;
+            Context.CurrentFieldIndex = memberMap.Index;
 
             if (memberMap.Ignore)
             {
@@ -290,10 +293,12 @@ public sealed class ExcelReader : IDisposable
 
             var cell = _worksheet.Cells[Context.Row, Context.Column];
             var rawValue = SharedStringTableHelper.GetCellValue(cell);
+            Context.CurrentFieldValue = rawValue;
 
             if (_configuration.TrimCellValues && rawValue is string s)
             {
                 rawValue = s.Trim();
+                Context.CurrentFieldValue = rawValue;
             }
 
             // Apply default if empty
@@ -302,6 +307,7 @@ public sealed class ExcelReader : IDisposable
                 if (memberMap.Default != null)
                 {
                     rawValue = memberMap.Default;
+                    Context.CurrentFieldValue = rawValue;
                 }
                 else if (!memberMap.IsOptional)
                 {
@@ -332,6 +338,7 @@ public sealed class ExcelReader : IDisposable
                     memberMap.Name,
                     Context.Row,
                     Context.Column,
+                    Context,
                     ex);
             }
 
@@ -343,11 +350,19 @@ public sealed class ExcelReader : IDisposable
                     var result = fieldValidator.Validate(convertedValue, memberMap.Name, Context.Row, Context.Column);
                     if (!result.IsValid)
                     {
+                        var validationArgs = new ValidationFailedEventArgs(
+                            Context, memberMap.Name, convertedValue, result.ErrorMessage ?? "Validation failed.");
+                        if (_configuration.ValidationFailed(validationArgs))
+                        {
+                            continue;
+                        }
+
                         throw new ExcelValidationException(
                             result.ErrorMessage ?? $"Validation failed for field '{memberMap.Name}'.",
                             memberMap.Name,
                             Context.Row,
-                            Context.Column);
+                            Context.Column,
+                            Context);
                     }
                 }
             }
@@ -366,6 +381,7 @@ public sealed class ExcelReader : IDisposable
                         $"Failed to set value '{convertedValue}' to member '{memberMap.Member.Name}'.",
                         typeof(T),
                         memberMap.Member.Name,
+                        Context,
                         ex);
                 }
             }
@@ -379,11 +395,19 @@ public sealed class ExcelReader : IDisposable
                 var result = recordValidator.Validate(instance, Context.Row);
                 if (!result.IsValid)
                 {
+                    var validationArgs = new ValidationFailedEventArgs(
+                        Context, null, instance, result.ErrorMessage ?? "Record validation failed.");
+                    if (_configuration.ValidationFailed(validationArgs))
+                    {
+                        continue;
+                    }
+
                     throw new ExcelValidationException(
                         result.ErrorMessage ?? "Record validation failed.",
                         null,
                         Context.Row,
-                        0);
+                        0,
+                        Context);
                 }
             }
         }
@@ -564,6 +588,9 @@ public sealed class ExcelReader : IDisposable
         var recordValidators = map.RecordValidators;
 
         Context.Column = 0;
+        Context.CurrentFieldName = null;
+        Context.CurrentFieldIndex = 0;
+        Context.CurrentFieldValue = null;
 
         return ReadRecordAtRow<T>(_currentRow, members, resolver, recordValidators);
     }
