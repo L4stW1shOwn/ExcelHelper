@@ -177,6 +177,22 @@ public class ExcelMemberMap<TClass, TMember>
     }
 
     /// <summary>
+    ///     Adds a validator for this member using a boolean predicate.
+    /// </summary>
+    /// <param name="predicate">The predicate that returns <c>true</c> if valid.</param>
+    /// <returns>This <see cref="ExcelMemberMap{TClass, TMember}" /> instance.</returns>
+    public ExcelMemberMap<TClass, TMember> Validate(Func<ValidateArgs, bool> predicate)
+    {
+        if (predicate == null)
+        {
+            throw new ArgumentNullException(nameof(predicate));
+        }
+
+        Data.Validators.Add(new FuncValidator(predicate));
+        return this;
+    }
+
+    /// <summary>
     ///     Gets the compiled setter for this member.
     /// </summary>
     /// <returns>A compiled setter delegate.</returns>
