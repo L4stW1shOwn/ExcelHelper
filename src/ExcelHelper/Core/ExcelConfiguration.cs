@@ -43,6 +43,24 @@ public class ExcelConfiguration
     }
 
     /// <summary>
+    ///     Unregisters the class map for the specified type.
+    /// </summary>
+    /// <typeparam name="T">The type to unregister the map for.</typeparam>
+    /// <returns><c>true</c> if the map was removed; otherwise, <c>false</c>.</returns>
+    public bool UnregisterClassMap<T>()
+    {
+        return Maps.Remove<T>();
+    }
+
+    /// <summary>
+    ///     Unregisters all class maps.
+    /// </summary>
+    public void UnregisterAllClassMaps()
+    {
+        Maps.Clear();
+    }
+
+    /// <summary>
     ///     Gets or sets the object resolver used to create instances during mapping.
     /// </summary>
     public IObjectResolver ObjectResolver { get; set; } = new DefaultObjectResolver();

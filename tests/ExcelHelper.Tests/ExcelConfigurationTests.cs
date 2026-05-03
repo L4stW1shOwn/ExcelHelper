@@ -1,6 +1,7 @@
 using System.Globalization;
 using ExcelHelper.Core;
 using ExcelHelper.Exceptions;
+using ExcelHelper.Mapping;
 using Xunit;
 
 namespace ExcelHelper.Tests;
@@ -105,4 +106,44 @@ public class ExcelConfigurationTests
         Assert.NotNull(captured);
         Assert.Equal("Name", captured.FieldName);
     }
+
+    private class TestClass { }
+
+    [Fact]
+    public void UnregisterClassMap_Removes_Registered_Map()
+    {
+        var config = new ExcelConfiguration();
+        config.RegisterClassMap(new ExcelClassMap<TestClass>());
+
+        var result = config.UnregisterClassMap<TestClass>();
+
+        Assert.True(result);
+        Assert.False(config.Maps.Contains<TestClass>());
+    }
+
+    [Fact]
+    public void UnregisterClassMap_Returns_False_When_Not_Registered()
+    {
+        var config = new ExcelConfiguration();
+
+        var result = config.UnregisterClassMap<TestClass>();
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void UnregisterAllClassMaps_Removes_All_Maps()
+    {
+        var config = new ExcelConfiguration();
+        config.RegisterClassMap(new ExcelClassMap<TestClass>());
+        config.RegisterClassMap<AnotherTestClassMap>();
+
+        config.UnregisterAllClassMaps();
+
+        Assert.False(config.Maps.Contains<TestClass>());
+        Assert.False(config.Maps.Contains<AnotherTestClass>());
+    }
+
+    private class AnotherTestClass { }
+    private class AnotherTestClassMap : ExcelClassMap<AnotherTestClass> { }
 }
